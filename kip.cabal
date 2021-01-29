@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 76e75df32242c92c0c300f1f7c77ce042c0846abe8d0fc3c0140135c2814f5e2
+-- hash: d7c8b721466bd0412e62b80e1a0015051f1cd4411aca391ca23db80f7044e7b6
 
 name:           kip
 version:        0.1.0.0
@@ -26,6 +26,8 @@ source-repository head
 
 library
   exposed-modules:
+      Kip.AST
+      Kip.Eval
       Kip.Parser
       Language.Foma
   other-modules:
@@ -38,6 +40,8 @@ library
       foma
   build-depends:
       base >=4.7 && <5
+    , parsec
+    , transformers
   default-language: Haskell2010
 
 executable kip

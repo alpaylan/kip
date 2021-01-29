@@ -18,6 +18,9 @@ library:
   source-dirs: src
   extra-libraries: foma
   c-sources: c/morphology.c
+  dependencies:
+    - parsec
+    - transformers
 
 executables:
   kip:

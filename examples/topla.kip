@@ -1,9 +1,11 @@
-bir doğruluk
+Bir boşluk var olamaz.
+
+Bir doğruluk
 ya doğru
 ya yanlış
 olabilir.
 
-bir (doğal sayı)
+Bir (doğal sayı)
 ya sıfır
 ya (öncül (doğal sayının)) ardılı
 olabilir.
@@ -14,7 +16,7 @@ olabilir.
   değilse,
     (bunun öncülüyle) (şunun ardılının) toplamıdır.
 
-bir (sayı listesi)
+Bir (sayı listesi)
 ya boş
 ya (ilk sayının) (devam (sayı listesine)) eklenmesi
 olabilir.
@@ -25,9 +27,12 @@ olabilir.
   değilse,
     (bunun elemanıyla) ((bunun devamının) toplamının) toplamıdır.
 
+(* sayılar: tek, iki, üç, dört *)
 sıfırın ardılına bir diyelim.
 birin ardılına iki diyelim.
 ikinin ardılına üç diyelim.
+üçün ardılına dört diyelim.
+dördün ardılına beş diyelim. (* yumuşama! *)
 
 (ikiyle üçün toplamını) yazdır.
-((birin (ikinin (üçün boşa eklenmesine) eklenmesine) eklenmesinin) toplamını) yazdır.
+((ikinin (üçün (beşin boşa eklenmesine) eklenmesine) eklenmesinin) toplamını) yazdır.
