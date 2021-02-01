@@ -1,7 +1,5 @@
 module Kip.AST where
 
-type Name = String
-
 data Case =
     Nom -- ^ nominative case (yalın hal)
   | Acc -- ^ accusative case (-i hali)
@@ -13,36 +11,34 @@ data Case =
   | Cond -- ^ conditional case (-se, şart kipi)
   deriving (Show, Eq, Ord)
 
-data Ty =
-    TyString
-  | Arr Ty Ty
-  | Mu Name Ty
-  | TyVar Name
+data Ty a =
+    TyString { annTy :: a }
+  | Arr      { annTy :: a , dom :: Ty a, img :: Ty a }
+  | TyInd    { annTy :: a , indName :: String }
   deriving (Show, Eq, Ord)
 
-type CasedTy = (Ty, Case)
-type Arg = (String, CasedTy)
+data Exp a =
+    Var    { annExp :: a , varName :: String }
+  | App    { annExp :: a , fn :: Exp a , args :: [Exp a] }
+  | StrLit { annExp :: a , lit :: String }
+  | Let    { annExp :: a , varName :: String , body :: Exp a }
+  deriving (Show, Eq)
 
-data Exp =
-    Var Name
-  | App Exp [Exp]
-  | Abs Arg Ty Exp
-  | StrLit String
-  -- | Let Name Ty Exp
-  deriving (Show, Eq, Ord)
+type Arg = (String, Ty Case)
+type Ctor = (String, [(String, Ty Case)])
 
 data Stmt =
-    Defn Name Ty Exp
-  | Function Name [(Name, CasedTy)] Exp
-  | NewType Name [(Name, [(Name, CasedTy)])]
-  | Print Exp
-  | ExpStmt Exp
-  deriving (Show, Eq, Ord)
+    Defn String (Ty Case) (Exp Case)
+  | Function String [Arg] (Ty Case) (Exp Case)
+  | NewType String [Ctor]
+  | Print (Exp Case)
+  | ExpStmt (Exp Case)
+  deriving (Show, Eq)
 
 isMultiWord :: String -> Bool
 isMultiWord s = length (words s) /= 1
 
-prettyExp :: Exp -> String
-prettyExp (Var name) | isMultiWord name = "(" <> name <> ")"
-                     | otherwise        = name
-prettyExp (StrLit s) = show s
+prettyExp :: Exp a -> String
+prettyExp (Var _ name) | isMultiWord name = "(" <> name <> ")"
+                       | otherwise        = name
+prettyExp (StrLit _ s) = show s

@@ -8,12 +8,12 @@ import Control.Monad.Trans.Except
 import Control.Monad.IO.Class
 
 data EvalState = 
-  EvalState
+  MkEvalState
     {
     }
 
 emptyEvalState :: EvalState
-emptyEvalState = EvalState
+emptyEvalState = MkEvalState
 
 data EvalError =
    Unknown
@@ -21,7 +21,7 @@ data EvalError =
 
 type EvalM = StateT EvalState (ExceptT EvalError IO)
 
-evalExp :: Exp -> EvalM Exp
+evalExp :: Exp Case -> EvalM (Exp Case)
 evalExp e = return e
 
 evalStmt :: Stmt -> EvalM ()
@@ -29,7 +29,7 @@ evalStmt stmt =
   case stmt of
     Defn name ty e -> 
       lift (throwE Unknown)
-    Function name args ty ->
+    Function name args ty body ->
       lift (throwE Unknown)
     NewType name ctors ->
       lift (throwE Unknown)

@@ -21,6 +21,7 @@ library:
   dependencies:
     - parsec
     - transformers
+    - split
 
 executables:
   kip:

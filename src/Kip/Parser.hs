@@ -1,24 +1,29 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 module Kip.Parser where
 
-import Kip.AST
+import Data.List
+import Data.List.Split (splitOn)
+import Data.Maybe
+import Control.Monad.IO.Class
 
 import Text.Parsec
 import Text.Parsec.String
 import qualified Text.Parsec.Expr as P
 
-data ParserCtx =
-  ParserCtx
-    { ctx :: [(Name, Case)]
-    }
+import Language.Foma
+import Kip.AST
 
-emptyParserCtx :: ParserCtx
-emptyParserCtx = ParserCtx []
+data ParserState =
+  MkParserState
+    { fsm :: FSM
+    , ctx :: [String]
+    }
 
 -- We need [IO] access in here because we need morphological parsing.
 type Outer = IO
-type KipParser = ParsecT String ParserCtx Outer
+type KipParser = ParsecT String ParserState Outer
 
 period :: KipParser ()
 period = spaces >> string "." >> spaces
@@ -29,13 +34,13 @@ lexeme p = spaces *> p <* spaces
 parens :: KipParser a -> KipParser a
 parens p = char '(' *> p <* char ')'
 
-name :: KipParser Name
+name :: KipParser String
 name = (:) <$> letter <*> many (digit <|> letter)
 
-word :: KipParser Name
+word :: KipParser String
 word = many1 letter
 
-multiword :: KipParser Name
+multiword :: KipParser String
 multiword = unwords <$> many1 (lexeme word)
 
 
@@ -60,18 +65,59 @@ parseQuotedString = do
     return $ concat strings
 -- End copied from https://stackoverflow.com/a/24106749/2016295, CC BY-SA 3.0
 
-identifier :: KipParser Name
+identifier :: KipParser String
 identifier = word <|> parens multiword
 
-parseExp :: KipParser Exp
-parseExp = try var <|> parens parseExp <|> str 
+inCtx :: String -> KipParser Bool
+inCtx x = do
+  MkParserState{..} <- getState
+  return $ x `elem` ctx
+
+getPossibleCase :: String -> Maybe (String, Case)
+getPossibleCase s 
+  | (root : _ : _) <- splitOn "<acc>" s = Just (root, Acc)
+  | (root : _ : _) <- splitOn "<dat>" s = Just (root, Dat)
+  | (root : _ : _) <- splitOn "<loc>" s = Just (root, Loc)
+  | (root : _ : _) <- splitOn "<abl>" s = Just (root, Abl)
+  | (root : _ : _) <- splitOn "<gen>" s = Just (root, Gen)
+  | (root : _ : _) <- splitOn "<ins>" s = Just (root, Ins)
+  | (root : _ : _) <- splitOn "<ise>" s = Just (root, Cond)
+  | otherwise = Just (s, Nom) -- FIXME, this is very rudimentary
+
+-- | Takes the fully declined word, returns the possible case
+-- and the string consisting the original word stripped of this case,
+-- based on the values in the context.
+estimateCase :: String -> KipParser (String, Case)
+estimateCase s = do
+  MkParserState{..} <- getState
+  morphAnalyses <- liftIO (ups fsm s)
+  let matches ma = mapMaybe (\v -> if v `isPrefixOf` ma then Just v else Nothing) ctx
+  case filter (not . null) (map matches morphAnalyses) of
+    [] -> fail "No nominative matching variable found"
+    xs@(_:_:_) -> do
+      liftIO $ print xs
+      fail "Ambiguity"
+    [oneWordMatches] -> 
+      case mapMaybe getPossibleCase oneWordMatches of
+        [] -> fail "No single case found"
+        (_:_:_) -> fail "Multiple cases"
+        [p] -> return p
+
+casedIdentifier :: KipParser (String, Case)
+casedIdentifier = do
+  x <- identifier
+  estimateCase x
+
+parseExp :: KipParser (Exp Case)
+parseExp = var
+    -- try var <|> parens parseExp <|> str 
   where
-    var = Var <$> identifier 
-    str = StrLit <$> parseQuotedString
+    -- var = Var Nom <$> identifier 
+    var = casedIdentifier >>= \(s,c) -> return (Var c s)
+    -- str = StrLit <$> parseQuotedString
 
 parseStmt :: KipParser Stmt
-parseStmt =
-  ty <|> expFirst
+parseStmt = ty <|> try def <|> expFirst
   where
     ctor = try ((, []) <$> identifier) 
       -- <|> parens (do 
@@ -86,10 +132,27 @@ parseStmt =
            <|> ((ya *> sepBy1 ctor (try ya)) <* lexeme (string "olabilir"))
       period
       return (NewType n ctors)
+    def = do
+      i <- identifier
+      lexeme (string "diyelim")
+      period
+      modifyState (\ps -> ps {ctx = i : (ctx ps)})
+      return (Defn i (TyString Nom) (StrLit Nom "foo"))
     expFirst = do
       e <- parseExp
       (try (lexeme (string "yazdır") *> return (Print e)) <|> 
         return (ExpStmt e)) <* period
 
-parseFromRepl :: String -> Outer (Either ParseError Stmt)
-parseFromRepl input = runParserT parseStmt emptyParserCtx "Kip" input
+-- | Too simple but it should do the job for now.
+removeComments :: String -> String
+removeComments s = go 0 s
+  where
+    go _ []             = []
+    go n ('(':'*':rest) = go (n + 1) rest
+    go n ('*':')':rest) = go (n - 1) rest
+    go n (c:cs) | n < 0 = error "Closing comment without opening"
+                | n == 0 = c : go n cs
+                | otherwise = go n cs
+
+parseFromRepl :: ParserState -> String -> Outer (Either ParseError Stmt)
+parseFromRepl st input = runParserT parseStmt st "Kip" (removeComments input)

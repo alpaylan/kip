@@ -7,14 +7,19 @@ import System.Environment
 import Data.List
 
 import System.Console.Haskeline
-import Language.Foma
 
+import Language.Foma
 import Kip.Parser
 import Kip.AST
 import Kip.Eval
 
 import Paths_kip (version)
 import Data.Version (showVersion)
+
+data ReplState =
+  ReplState
+    { ctx :: [String]
+    }
 
 main :: IO ()
 main = 
@@ -44,9 +49,11 @@ main =
                 liftIO (ups fsm word) >>= \xs -> mapM_ outputStrLn xs
                 loop fsm
             | otherwise -> do 
-                liftIO (parseFromRepl input) >>= \case
+                let pst = MkParserState fsm []
+                liftIO (parseFromRepl pst input) >>= \case
                   Left err -> outputStrLn $ "Err: " ++ show err
                   Right stmt -> do
+                    outputStrLn $ show stmt
                     liftIO (runEvalM (replStmt stmt) emptyEvalState) >>= \case
                       Left evalErr -> outputStrLn $ "Eval err: " ++ show evalErr
                       Right (res, st) ->
