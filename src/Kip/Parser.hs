@@ -91,17 +91,14 @@ estimateCase :: String -> KipParser (String, Case)
 estimateCase s = do
   MkParserState{..} <- getState
   morphAnalyses <- liftIO (ups fsm s)
-  let matches ma = mapMaybe (\v -> if v `isPrefixOf` ma then Just v else Nothing) parserCtx
-  case filter (not . null) (map matches morphAnalyses) of
-    [] -> fail "No nominative matching variable found"
-    xs@(_:_:_) -> do
-      liftIO $ print xs
-      fail "Ambiguity"
-    [oneWordMatches] -> 
-      case mapMaybe getPossibleCase oneWordMatches of
-        [] -> fail "No single case found"
-        (_:_:_) -> fail "Multiple cases"
-        [p] -> return p
+  let xs = nub $ [ (root, cas) | x <- parserCtx
+                               , y <- morphAnalyses
+                               , let Just (root, cas) = getPossibleCase y
+                               , x `isPrefixOf` y ]
+  case xs of
+    [] -> fail "no nominative matching variable found"
+    _:_:_ -> fail $ "Ambiguity between " ++ intercalate ", " (map show xs)
+    [p] -> return p
 
 casedIdentifier :: KipParser (String, Case)
 casedIdentifier = do

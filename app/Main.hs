@@ -23,6 +23,7 @@ data ReplState =
   ReplState
     { replCtx :: [String]
     }
+  deriving (Show)
 
 main :: IO ()
 main = 
@@ -52,6 +53,7 @@ main =
                 liftIO (ups fsm word) >>= \xs -> mapM_ outputStrLn xs
                 loop fsm rs
             | otherwise -> do 
+                liftIO (print rs)
                 let pst = MkParserState fsm (replCtx rs)
                 liftIO (parseFromRepl pst input) >>= \case
                   Left err -> do
