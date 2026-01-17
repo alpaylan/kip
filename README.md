@@ -4,10 +4,33 @@ Kip is an experimental programming language that uses Turkish grammatical cases 
 
 This is a research/educational project exploring the intersection of linguistics and type theory, not a production programming language.
 
-There is also [a tutorial in Turkish](https://github.com/joom/kip/blob/main/kılavuz.md) that explains how to write Kip programs.
+There is also [a tutorial in Turkish](https://github.com/joom/kip/wiki/K%C4%B1lavuz) and [a tutorial in English](https://github.com/joom/kip/wiki/Tutorial) that explains how to write Kip programs.
 
 > [!NOTE]
 > Kip is experimental. Expect changes in syntax and behavior over time.
+
+For you to get a taste of what Kip looks like, here is an example program that prompts the user to enter a number and then prints that many of the Fibonacci numbers:
+
+```
+(* İlk n Fibonacci sayısını yazdırır. *)
+(bu tam-sayıyı) (şu tam-sayıyı) (o tam-sayıyı) işlemek,
+  (onla 0'ın eşitliği) doğruysa,
+    durmaktır,
+  yanlışsa,
+    bunu yazıp,
+    şunu (bunla şunun toplamını) (onla 1'in farkını) işlemektir.
+
+çalıştırmak,
+  "Bir sayı girin:" yazıp,
+  isim olarak okuyup,
+  ((ismin tam-sayı-hali)
+    yokluksa,
+      "Geçersiz sayı." yazmaktır,
+    n'nin varlığıysa,
+      0'ı 1'i n'yi işlemektir).
+
+çalıştır.
+```
 
 ## Table of Contents
 
