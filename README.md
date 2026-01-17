@@ -241,18 +241,12 @@ ikinin ardılına üç diyelim.
 ## Project Structure
 
 ```
-src/Kip/
-├── AST.hs        - Abstract syntax tree with case annotations
-├── Parser.hs     - Megaparsec parser
-├── TypeCheck.hs  - Type checker validating grammatical case usage
-├── Eval.hs       - Interpreter
-└── Render.hs     - Pretty-printing with morphological inflection
+app/
+└── Main.hs            - CLI entry point
 
-src/Language/
-└── Foma.hs       - Haskell bindings to Foma via FFI
-
-c/
-└── morphology.c  - C interface to Foma library
+src/
+├── Kip/               - Core compiler/runtime modules (parser, typecheck, eval, cache)
+└── Language/          - Foma bindings
 
 lib/
 ├── temel.kip           - Core types
@@ -262,8 +256,12 @@ lib/
 ├── temel-liste.kip     - List functions
 └── temel-tam-sayı.kip  - Integer functions
 
+tests/
+├── succeed/            - Passing golden tests (.kip + .out)
+└── fail/               - Failing golden tests (.kip + .err)
+
 vendor/
-└── trmorph.fst   - TRmorph transducer
+└── trmorph.fst        - TRmorph transducer
 ```
 
 ## Testing
