@@ -1,6 +1,6 @@
 # Kip
 
-Kip is an experimental programming language that uses Turkish grammatical cases as part of its type system. It demonstrates how natural language morphology—specifically Turkish noun cases and vowel harmony—can be integrated into programming language design.
+Kip (meaning "grammatical mood" in Turkish) is an experimental programming language that uses Turkish grammatical cases as part of its type system. It demonstrates how natural language morphology—specifically Turkish noun cases and vowel harmony—can be integrated into programming language design.
 
 This is a research/educational project exploring the intersection of linguistics and type theory, not a production programming language.
 
